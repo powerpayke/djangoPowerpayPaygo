@@ -1,0 +1,80 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+    Powerpay Africa: Transactions
+{% endblock %}
+
+{% block content %}
+    <h2>Transactions</h2>
+    <div class="container">
+        <div class="search-container">
+            <!-- Search form -->
+            <form method="get" action="{% url 'transactions_page' %}">
+                <input type="text" name="q" value="{{ query }}" placeholder="Search by name, reference, or ID">
+                <button type="submit">Search</button>
+                <a href="{% url 'transactions_page' %}" class="clear-search">Clear</a>
+            </form>
+        </div>
+        <div style="margin-bottom:20px; float:left;">
+            <a href="{% url 'payment_prompt' %}" class="add-device-btn">Prompt Payment</a>
+        </div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th class="table_headers">Transactor Name</th>
+                    <th class="table_headers">Account Reference</th>
+                    <th class="table_headers">Transaction ID</th>
+                    <th class="table_headers">Amount</th>
+                    <th class="table_headers">Transaction Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in transactions_table %}
+                <tr>
+                    <td class="table_content">{{ row.name }}</td>
+                    <td class="table_content">{{ row.ref }}</td>
+                    <td class="table_content">{{ row.id }}</td>
+                    <td class="table_content">{{ row.amount }}</td>
+                    <td class="table_content">{{ row.transtime|date:"j M Y h:i:s A" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Pagination controls -->
+        <div class="pagination">
+            <span class="step-links">
+                {% if transactions_table.has_previous %}
+                    <a href="?page=1{% if query %}&q={{ query }}{% endif %}">&laquo; first</a>
+                    <a href="?page={{ transactions_table.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">previous</a>
+                {% endif %}
+
+                <span class="current">
+                    Page {{ transactions_table.number }} of {{ transactions_table.paginator.num_pages }}.
+                </span>
+
+                {% if transactions_table.has_next %}
+                    <a href="?page={{ transactions_table.next_page_number }}{% if query %}&q={{ query }}{% endif %}">next</a>
+                    <a href="?page={{ transactions_table.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}">last &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
+    </div>
+    <!-- Line chart -->
+    <div class="charts">
+        <div class="line-chart">{{ line_chart|safe }}</div>
+    </div>
+    <style>
+        .add-device-btn {
+            text-decoration: none;
+            padding: 10px;
+            border-radius: 10px;
+            background-color: #0ead00;
+            color: #fff;
+            text-align: center;
+        }
+        .add-device-btn:hover {
+            background-color: #e68a00; 
+        }
+    </style>
+{% endblock %}
