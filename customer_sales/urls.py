@@ -13,6 +13,7 @@ urlpatterns = [
     path('sales/<int:pk>/', views.sale_detail, name='sale_detail'),
     path('sales/<int:pk>/edit/', views.sale_edit, name='sale_edit'),
     path('sales/<int:pk>/delete/', views.sale_delete, name='sale_delete'),
-     path('paygo_sales/', views.paygo_sales, name='paygo_sales'),
+    path('paygo_sales/', views.paygo_sales, name='paygo_sales'),
+    path('paygo_sales_non_metered/', views.paygo_sales_non_metered, name='paygo_sales_non_metered')
 ]
 

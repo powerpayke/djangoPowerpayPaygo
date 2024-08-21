@@ -102,7 +102,8 @@
             <a href="{% url 'sales_list' %}">Sales 💲</a>
             <div class="sales-dropdown-content">
                 <a href="{% url 'sales_list' %}">All Sales</a>
-                <a href="{% url 'paygo_sales' %}">PayGo Sales</a>
+                <a href="{% url 'paygo_sales' %}">PayGo Sales(Metered)</a>
+                <a href="{% url 'paygo_sales_non_metered' %}">PayGo Sales(Non-Metered)</a>
             </div>
         </div>
         <a href="{% url 'transactions_page' %}">Transactions 💱</a>

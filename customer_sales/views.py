@@ -174,3 +174,55 @@ def paygo_sales(request):
         'query': query,
     }
     return render(request, 'customer_sales/paygo_sales.html', context)
+
+def paygo_sales_non_metered(request):
+    sort_field = request.GET.get('sort', 'product_serial_number')
+    sort_direction = request.GET.get('direction', 'asc')
+    query = request.GET.get('q', '')
+
+    # Fetch sales data (assuming it's coming from an external source or model)
+    sales_data = fetch_data('paygoScodeNonMetered')
+
+    # Custom sorting function
+    def sort_sales(data, sort_field, direction='asc'):
+        def sort_key(sale):
+            if sort_field == 'product_serial_number':
+                # Sort by the last 4 digits of the serial number
+                return int(sale['product_serial_number'][-4:])
+            elif sort_field == 'payment_status':
+                # Define a custom order for payment statuses
+                status_order = {
+                    'overdue': 0,
+                    'on-time': 1,
+                    'fully-paid': 2
+                }
+                return status_order.get(sale['paymentData']['payment_status'], 3)
+            elif sort_field in ['totalPaid', 'paygoBalance', 'days', 'balance']:
+                # Convert to float or int as necessary
+                value = sale['paymentData'].get(sort_field, 0)
+                try:
+                    return float(value)  # Convert to float for consistency
+                except ValueError:
+                    return 0
+            else:
+                return sale.get(sort_field, '')
+
+        reverse = direction == 'desc'
+        return sorted(data, key=sort_key, reverse=reverse)
+
+
+    # Apply custom sorting
+    sorted_sales = sort_sales(sales_data, sort_field, sort_direction)
+
+    # Add pagination or any other processing as needed
+    paginator = Paginator(sorted_sales, 10)  # Show 10 sales per page
+    page_number = request.GET.get('page')
+    page_sales = paginator.get_page(page_number)
+
+    context = {
+        'sales': page_sales,
+        'sort_field': sort_field,
+        'sort_direction': sort_direction,
+        'query': query,
+    }
+    return render(request, 'customer_sales/paygo_sales_non_metered.html', context)
