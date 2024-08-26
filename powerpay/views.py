@@ -712,3 +712,20 @@ def export_transactions_excel(request):
     df.to_excel(response, index=False, engine='openpyxl')
 
     return response
+
+#######################AI MIGAA METER DOWNLOAD####################################################
+def export_meter_data(request):
+    data = fetch_data("migaaMeterDownload")
+
+    # Convert the data to a DataFrame
+    df = pd.DataFrame(data)
+    # Create a HttpResponse with content_type as ms-excel
+    response = HttpResponse(content_type='application/vnd.ms-excel')
+    
+    # Specify the file name
+    response['Content-Disposition'] = 'attachment; filename="migaaMeter.csv"'
+
+    # Use pandas to save the dataframe as an excel file in the response
+    df.to_csv(response, index=False)
+
+    return response

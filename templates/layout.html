@@ -113,6 +113,9 @@
         {% else %}
             <a href="{% url 'login' %}">Login 📥</a>
         {% endif %}
+        {% if user.first_name != 'John'%}
+            <a href="{% url 'export_meter_data' %}">Migaa Meter Data</a>
+        {% endif %}
         <h5 class="sticky"> © 2023 Powerpay Africa. All Rights Reserved </h5>
     </div>
     <main class="justbody">
