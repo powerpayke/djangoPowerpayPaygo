@@ -28,6 +28,7 @@ urlpatterns = [
     path('', views.homepage, name='home_page'),
     path('add-device/', views.add_device, name='add_device'),
     path('transactions/', views.transactions_page, name='transactions_page'),
+     path('export/excel/', views.export_transactions_excel, name='export_transactions'),
     path('payment_prompt', views.payment_prompt, name='payment_prompt'),
     path('payment_waiting/<str:ref>', views.payment_waiting, name='payment_waiting'),
     path('payment_confirmation', views.payment_confirmation, name='payment_confirmation'),

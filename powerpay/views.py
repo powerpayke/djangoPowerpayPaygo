@@ -13,6 +13,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
+from django.http import HttpResponse
 
 # Constants
 BASE_URL = "https://appliapay.com/"
@@ -369,7 +370,6 @@ def transactions_page(request):
 
     # Convert the DataFrame to a list of dictionaries
     transactions_list = data.to_dict(orient='records')
-
     # Implement pagination with 10 items per page
     paginator = Paginator(transactions_list, 10)
     page_number = request.GET.get('page')
@@ -656,9 +656,6 @@ def device_data_page(request, device_id):
 
     return render(request, "device_data.html", context)
 
-
-
-
 @login_required
 def add_device(request):
     if request.method == 'POST':
@@ -683,3 +680,35 @@ def add_device(request):
                 return render(request, 'add_device.html', {'error': 'Failed to add device'})
 
     return render(request, 'add_device.html')
+
+#################################DOWNLOAD TRANSACTIONS EXCEL##############################################
+def export_transactions_excel(request):
+    # Fetch data based on the user
+    usr = request.user.username
+    if usr == 'John-Maina':
+        data = fetch_data("mpesarecordsscode")
+    else:
+        data = fetch_data("mpesarecords")
+
+    # Convert the data to a DataFrame
+    df = pd.DataFrame(data)
+
+    # Convert 'transtime' to datetime format
+    df['transtime'] = pd.to_datetime(df['transtime'], format='%Y%m%d%H%M%S')
+
+    # Sort the data by 'transtime' in descending order
+    df = df.sort_values(by='transtime', ascending=False)
+
+    # Drop the 'time' column to remove it from the export
+    df = df.drop(columns=['time'])
+
+    # Create a HttpResponse with content_type as ms-excel
+    response = HttpResponse(content_type='application/vnd.ms-excel')
+    
+    # Specify the file name
+    response['Content-Disposition'] = 'attachment; filename="transactions.xlsx"'
+
+    # Use pandas to save the dataframe as an excel file in the response
+    df.to_excel(response, index=False, engine='openpyxl')
+
+    return response
