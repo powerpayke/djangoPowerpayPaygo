@@ -148,6 +148,17 @@
             input:checked + .slider:before {
                 transform: translateX(26px);
             }
+            .add-device-btn {
+                text-decoration: none;
+                padding: 10px;
+                border-radius: 10px;
+                background-color: #0ead00;
+                color: #fff;
+                text-align: center;
+            }
+            .add-device-btn:hover {
+                background-color: #e68a00; 
+            }
         </style>
 
         <div class="data-labels">
@@ -156,8 +167,10 @@
             <label class="labelArea">🤑 <br>Total Energy Cost:<br>KSHS. {{ energy_cost|floatformat:1 }}</label>
             <label class="labelArea">🏭 <br>Emissions:<br>{{ emissions|floatformat:2 }} kg CO₂</label>
         </div>
-        
         <h3 style="text-align:center">Cooking Events</h3>
+        <div style="margin-bottom:20px; float:right;">
+            <a href="{% url 'export_device_data' device_id=device_id %}" class="add-device-btn">Export Cooking Data</a>
+        </div>
         <div class="container">
             <table class="table">
                 <thead>

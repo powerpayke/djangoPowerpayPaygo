@@ -37,6 +37,7 @@ urlpatterns = [
     path('payment_confirmation_page/', views.payment_confirmation_page, name='payment_confirmation_page'),
     path('devices/', views.devices_page, name='devices_page'),
     path('device/<str:device_id>/', views.device_data_page, name='device_data_page'),
+    path('export/device_data/<str:device_id>/', views.export_device_data, name='export_device_data'),
     path('accounts/', include('django.contrib.auth.urls')),
     path('login/', views.login_page, name='login'),
     path('logout/', views.logout_page, name='logout'),

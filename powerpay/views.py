@@ -713,6 +713,41 @@ def export_transactions_excel(request):
 
     return response
 
+###############################DOWNLOAD DEVICE DATA#######################################################
+def export_device_data(request, device_id):
+    range_value = request.GET.get('range', 9999999)
+    
+    # Fetch data based on device_id and range_value
+    data = fetch_data_with_params("deviceDataDjangoo", device_id, range_value)
+    meals_with_durations = data['mealsWithDurations'][::-1]
+    for x in meals_with_durations:
+        x['mealDuration'] = round(x['mealDuration']/60)
+        x['mealDuration'] = str(x['mealDuration']) + " minutes"
+        x['emissions'] = round(x['totalKwh'] * 0.4999 * 0.28, 3)
+        x['emissions'] = str(x['emissions']) + " kg CO₂"
+        x['energyCost'] = round(x['totalKwh'] * 23.0, 1) 
+        x['energyCost'] = "KSHS. " + str(x['energyCost'])
+        x['totalKwh'] = round(x['totalKwh'],3)
+        x['totalKwh'] = str(x['totalKwh']) + " kWh"
+    # Convert the data to a DataFrame
+    df = pd.DataFrame(meals_with_durations)
+    
+    # Create the filename
+    fileName = f"{device_id}_cooking_data.xlsx"
+    
+    # Create a HttpResponse with content_type as ms-excel
+    response = HttpResponse(content_type='application/vnd.ms-excel')
+    
+    # Specify the file name using f-string
+    response['Content-Disposition'] = f'attachment; filename="{fileName}"'
+    
+    # Use pandas to save the dataframe as an excel file in the response
+    df.to_excel(response, index=False, engine='openpyxl')
+
+    return response
+
+
+
 #######################AI MIGAA METER DOWNLOAD####################################################
 def export_meter_data(request):
     data = fetch_data("migaaMeterDownload")
