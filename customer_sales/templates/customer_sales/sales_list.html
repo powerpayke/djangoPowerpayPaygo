@@ -17,6 +17,9 @@
         <button type="submit" class="device_data_btn">Add New Sale</button>
     </form>
     </div>
+    <div style="margin-bottom:20px; float:right;">
+        <a href="{% url 'export_sales' %}" class="add-device-btn">Export Sales Data</a>
+    </div>
     <table class="table">
         <thead>
             <tr>
@@ -63,4 +66,17 @@
         </span>
     </div>
 </div>
+<style>
+    .add-device-btn {
+        text-decoration: none;
+        padding: 10px;
+        border-radius: 10px;
+        background-color: #0ead00;
+        color: #fff;
+        text-align: center;
+    }
+    .add-device-btn:hover {
+        background-color: #e68a00; 
+    }
+</style>
 {% endblock %}

@@ -6,8 +6,8 @@ from .forms import CustomerForm, SaleForm
 from datetime import timedelta
 import requests
 from requests.auth import HTTPBasicAuth
-import json
-from operator import itemgetter
+import pandas as pd
+from django.http import HttpResponse
 
 # Constants
 BASE_URL = "https://appliapay.com/"
@@ -226,3 +226,47 @@ def paygo_sales_non_metered(request):
         'query': query,
     }
     return render(request, 'customer_sales/paygo_sales_non_metered.html', context)
+
+###############################DOWNLOAD CUSTOMER DATA#######################################################
+def export_customer_data(request):
+    customers = Customer.objects.all().values()
+    df = pd.DataFrame(customers)
+    # Convert any datetime columns to timezone-unaware
+    for column in df.columns:
+        if pd.api.types.is_datetime64_any_dtype(df[column]):
+            df[column] = df[column].dt.tz_convert(None)  # Remove timezone information
+    # Create the filename
+    fileName = "customer_data.xlsx"
+    
+    # Create a HttpResponse with content_type as ms-excel
+    response = HttpResponse(content_type='application/vnd.ms-excel')
+    
+    # Specify the file name using f-string
+    response['Content-Disposition'] = f'attachment; filename="{fileName}"'
+    
+    # Use pandas to save the dataframe as an excel file in the response
+    df.to_excel(response, index=False, engine='openpyxl')
+
+    return response
+
+###############################DOWNLOAD SALES DATA#######################################################
+def export_sales_data(request):
+    sales = Sale.objects.all().values()
+    df = pd.DataFrame(sales)
+    # Convert any datetime columns to timezone-unaware
+    for column in df.columns:
+        if pd.api.types.is_datetime64_any_dtype(df[column]):
+            df[column] = df[column].dt.tz_convert(None)  # Remove timezone information
+    # Create the filename
+    fileName = "sales_data.xlsx"
+    
+    # Create a HttpResponse with content_type as ms-excel
+    response = HttpResponse(content_type='application/vnd.ms-excel')
+    
+    # Specify the file name using f-string
+    response['Content-Disposition'] = f'attachment; filename="{fileName}"'
+    
+    # Use pandas to save the dataframe as an excel file in the response
+    df.to_excel(response, index=False, engine='openpyxl')
+
+    return response
