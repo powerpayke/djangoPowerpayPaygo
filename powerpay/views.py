@@ -14,6 +14,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.http import HttpResponse
+from customer_sales.models import Customer, Sale
 
 # Constants
 BASE_URL = "https://appliapay.com/"
@@ -96,7 +97,9 @@ def homepage(request):
     sumMeals = sum(meal_counts)
 
     charts = generate_charts(data_list, runtime, meals, morning, afternoon, night)
-
+    linked_data = linkAllData(meals)
+    linked_data = pd.DataFrame(linked_data)
+    locations, countries, genders, household_size, household_type, sales_reps = plot_meal_classifications(linked_data)
     context = {
         'line_chart': charts['line_chart'],
         'pie_chart': charts['pie_chart'],
@@ -111,11 +114,127 @@ def homepage(request):
         'sumEnergyCost': sumKwh * 23.0,
         'sumMeals': sumMeals,
         'selected_range': str(range),
-        'meals': meals
+        'meals': meals,
+        'linked_data': linked_data,
+        'location_graph': locations,
+        'countries_graph': countries,
+        'genders_graph': genders,
+        'household_size_graph': household_size,
+        'household_type_graph': household_type,
+        'sales_reps_graph': sales_reps
         #'scatter_chart': scatterCharts
     }
 
     return render(request, 'index.html', context)
+
+def linkAllData(devData):
+    customer_data = Customer.objects.all().values()
+    sales_data = Sale.objects.all().values()
+    cooking_data = devData
+    # Step 1: Link cooking data with sales data using the product_serial_number
+    linked_data = []
+    for sale in sales_data:
+        serial_number = sale['product_serial_number']
+        if serial_number in cooking_data:
+            sale['meals_cooked'] = cooking_data[serial_number]['count']
+            sale['last_txtime'] = cooking_data[serial_number]['last_txtime']
+        else:
+            sale['meals_cooked'] = 0
+            sale['last_txtime'] = None
+
+        # Step 2: Link sales data with customer data using customer_id
+        for customer in customer_data:
+            if customer['id'] == sale['customer_id']:
+                linked_entry = {**sale, **customer}  # Merge the dictionaries
+                linked_data.append(linked_entry)
+    return linked_data
+
+def plot_meal_classifications(data):
+    # Create a dictionary to store the HTML of each graph
+    graphs_html = {}
+
+    # Classification by household type
+    fig_household_type = go.Figure()
+    household_type_data = data.groupby('household_type')['meals_cooked'].sum().reset_index()
+    fig_household_type = create_pie_chart(household_type_data['household_type'], household_type_data['meals_cooked'], 'Meals Cooked by Household Type')
+    #fig_household_type.add_trace(go.Bar(
+     #   x=household_type_data['household_type'],
+      #  y=household_type_data['meals_cooked'],
+       # name='Household Type'
+    #))
+    
+    fig_household_type.update_traces(
+        hole=.5
+    )
+    
+    graphs_html['household_type'] = pio.to_html(fig_household_type, full_html=False)
+
+    # Classification by household size
+    fig_household_size = go.Figure()
+    household_size_data = data.groupby('household_size')['meals_cooked'].sum().reset_index()
+    fig_household_size = create_pie_chart(household_size_data['household_size'], household_size_data['meals_cooked'], 'Meals Cooked by Household Size')
+    #fig_household_size.add_trace(go.Bar(
+     #   x=household_size_data['household_size'],
+      #  y=household_size_data['meals_cooked'],
+       # name='Household Size'
+    #))
+    fig_household_size.update_traces(hole=.5)
+    
+    graphs_html['household_size'] = pio.to_html(fig_household_size, full_html=False)
+
+    # Classification by country
+    fig_country = go.Figure()
+    country_data = data.groupby('country')['meals_cooked'].sum().reset_index()
+    fig_country = create_pie_chart(country_data['country'], country_data['meals_cooked'], 'Meals Cooked by Country')
+    #fig_country.add_trace(go.Bar(
+     #   x=country_data['country'],
+      #  y=country_data['meals_cooked'],
+       # name='Country'
+    #))
+    fig_country.update_traces(hole=.5)
+    
+    graphs_html['country'] = pio.to_html(fig_country, full_html=False)
+
+    # Classification by location
+    fig_location = go.Figure()
+    location_data = data.groupby('location')['meals_cooked'].sum().reset_index()
+    fig_location = create_pie_chart(location_data['location'], location_data['meals_cooked'], 'Meals Cooked by Location')
+    #fig_location.add_trace(go.Bar(
+     #   x=location_data['location'],
+      #  y=location_data['meals_cooked'],
+       # name='Location'
+    #))
+    fig_location.update_traces(hole=.5)
+    
+    graphs_html['location'] = pio.to_html(fig_location, full_html=False)
+
+    # Classification by sales rep
+    fig_sales_rep = go.Figure()
+    sales_rep_data = data.groupby('sales_rep')['meals_cooked'].sum().reset_index()
+    fig_sales_rep = create_pie_chart(sales_rep_data['sales_rep'], sales_rep_data['meals_cooked'], 'Meals Cooked by Sales Rep')
+    #fig_sales_rep.add_trace(go.Bar(
+     #   x=sales_rep_data['sales_rep'],
+      #  y=sales_rep_data['meals_cooked'],
+       # name='Sales Rep'
+    #))
+    fig_sales_rep.update_traces(hole=.5)
+    
+    graphs_html['sales_rep'] = pio.to_html(fig_sales_rep, full_html=False)
+
+    # Classification by gender
+    fig_gender = go.Figure()
+    gender_data = data.groupby('gender')['meals_cooked'].sum().reset_index()
+    fig_gender = create_pie_chart(gender_data['gender'], gender_data['meals_cooked'], 'Meals Cooked By Gender')
+    #fig_gender.add_trace(go.Bar(
+     #   x=gender_data['gender'],
+      #  y=gender_data['meals_cooked'],
+       # name='Gender'
+    #))
+    fig_gender.update_traces(hole=.5)
+    
+    graphs_html['gender'] = pio.to_html(fig_gender, full_html=False)
+
+    return graphs_html['location'], graphs_html['country'], graphs_html['gender'], graphs_html['household_size'], graphs_html['household_type'], graphs_html['sales_rep']
 
 def plotAllDevData(data):
     # Convert txtime to datetime format

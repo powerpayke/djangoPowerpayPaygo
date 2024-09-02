@@ -45,6 +45,7 @@
         <button class="tablinks" onclick="openTab(event, 'energy-summary')" id="defaultOpen">Energy Summary ⚡</button>
         <button class="tablinks" onclick="openTab(event, 'cooking-summary')">Cooking Summary 🍳</button>
         <button class="tablinks" onclick="openTab(event, 'emissions-summary')">Emissions Summary 🏭</button>
+        <button class="tablinks" onclick="openTab(event, 'customer-summary')">Customer Summary 👥</button>
     </div>
 
     <div id="energy-summary" class="tabcontent">
@@ -115,6 +116,8 @@
         <div class="charts">
             <div class="line-chart">{{ cooking_line_chart|safe }}</div>
         </div>
+        <div> <p>{{linked_data}}</p>
+        </div>
     </div>
 
     <div id="emissions-summary" class="tabcontent">
@@ -143,8 +146,47 @@
             <label class="labelArea">🏭 <br>Total Emissions:<br>{{ sumEmissions|floatformat:2 }} kg CO2</label>
         </div>
         <div class="pie">
-            <div class="meals-pie">{{ meals_emissions_html|safe }}</div>
-            <div class="pie-chart">{{ pie_chart_emissions|safe }}</div>
+            <div class="meals-pie">{{ pie_chart_emissions |safe }}</div>
+            <div class="pie-chart">{{ meals_emissions_html|safe }}</div>
+        </div>
+    </div>
+
+    <div id="customer-summary" class="tabcontent">
+            <h1 style="text-align:center">Customer Dashboard</h1>
+            <div style="padding: 10px; margin-bottom:10px">
+                <label>Choose time range: </label>
+                <select name="range3" id="rangeDropdown3" class="dropdown">
+                    <option value="9999999" {% if selected_range == '9999999' %}selected{% endif %}>All Time</option>
+                    <option value="5" {% if selected_range == '5' %}selected{% endif %}>5 min</option>
+                    <option value="30" {% if selected_range == '30' %}selected{% endif %}>30 min</option>
+                    <option value="60" {% if selected_range == '60' %}selected{% endif %}>1 hr</option>
+                    <option value="180" {% if selected_range == '180' %}selected{% endif %}>3 hrs</option>
+                    <option value="720" {% if selected_range == '720' %}selected{% endif %}>12 hrs</option>
+                    <option value="1440" {% if selected_range == '1440' %}selected{% endif %}>24 hrs</option>
+                    <option value="4320" {% if selected_range == '4320' %}selected{% endif %}>3 days</option>
+                    <option value="10080" {% if selected_range == '10080' %}selected{% endif %}>7 days</option>
+                    <option value="20160" {% if selected_range == '20160' %}selected{% endif %}>2 weeks</option>
+                    <option value="43200" {% if selected_range == '43200' %}selected{% endif %}>1 month</option>
+                    <option value="129600" {% if selected_range == '129600' %}selected{% endif %}>3 months</option>
+                    <option value="259200" {% if selected_range == '259200' %}selected{% endif %}>6 months</option>
+                    <option value="525600" {% if selected_range == '525600' %}selected{% endif %}>1 year</option>
+                    <option value="1576800" {% if selected_range == '1576800' %}selected{% endif %}>3 years</option>
+                </select>
+                </div>
+            <div>
+            <div class="pie" style="padding:10px; overflow:hidden;">
+                <div class="meals-pie">{{ countries_graph|safe}}</div>
+                <div class="pie-chart">{{ location_graph|safe}}</div>
+            </div>
+            <div class="pie" style="padding:10px; overflow:hidden;">
+                <div class="meals-pie">{{ household_size_graph|safe}}</div>
+                <div class="pie-chart">{{ household_type_graph|safe}}</div>
+            </div>
+            <div class="pie" style="padding:10px; overflow:hidden;">
+                <div class="meals-pie">{{ genders_graph|safe}}</div>
+                <div class="pie-chart">{{ sales_reps_graph|safe}}</div>
+            </div>
+        </div>
         </div>
         
 
@@ -179,6 +221,10 @@
         });
 
         document.getElementById("rangeDropdown2").addEventListener("change", function() {
+            var selectedRange = this.value;
+            window.location.href = '?range=' + selectedRange;
+        });
+        document.getElementById("rangeDropdown3").addEventListener("change", function() {
             var selectedRange = this.value;
             window.location.href = '?range=' + selectedRange;
         });
