@@ -288,7 +288,7 @@ def devices_page(request):
                 return float('inf')
             elif x.startswith('device'):
                 return int(x.split('device')[-1])
-            elif x.startswith('JD-'):
+            elif x.startswith('JD-29ED'):
                 return int(x.split('JD-29ED')[-1])
             else:
                 return float('inf') - 1
@@ -740,11 +740,8 @@ def device_data_page(request, device_id):
                 return float('inf')
             elif x.startswith('device'):
                 return int(x.split('device')[-1])
-            elif x.startswith('JD-'):
-                try:
-                    return int(x.split('-')[-1].split('device')[-1])
-                except ValueError:
-                    return float('inf') - 1
+            elif x.startswith('JD-29ED'):
+                return int(x.split('JD-29ED')[-1])
             else:
                 return float('inf') - 1
         
