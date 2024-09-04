@@ -313,6 +313,17 @@ form button:hover {
     justify-content: center;
     font-size: 18px;
 }
+.add-device-btn {
+    text-decoration: none;
+    padding: 10px;
+    border-radius: 10px;
+    background-color: #0ead00;
+    color: #fff;
+    text-align: center;
+}
+.add-device-btn:hover {
+    background-color: #e68a00; 
+}
 
 .dropdown {
     border-radius:8px;

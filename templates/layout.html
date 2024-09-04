@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.min.css">
     <link rel="icon" href="{% static 'css/favicon.ico' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         .spinner {
@@ -95,28 +96,29 @@
     <div class="greeting-bar" id="greeting-bar"></div>
     <div class="sidebar">
         <h1>PowerPay Africa</h1>
-        <a href="{% url 'home_page' %}">Home 🏠</a>
-        <a href="{% url 'devices_page' %}">Devices ⚙️</a>
-        <a href="{% url 'customers_list' %}">Customers 👥</a>
+        <a href="{% url 'home_page' %}"><i class="fa fa-home" aria-hidden="true" style="margin-right:5px;"></i> Home</a>
+        <a href="{% url 'devices_page' %}"><i class="fa fa-cogs" aria-hidden="true" style="margin-right:5px;"></i> Devices</a>
+        <a href="{% url 'customers_list' %}"><i class="fa fa-users" aria-hidden="true" style="margin-right:5px;"></i> Customers</a>
         <div class="sales-dropdown">
-            <a href="{% url 'sales_list' %}">Sales 💲</a>
+            <a href="{% url 'sales_list' %}"><i class="fa fa-shopping-cart" aria-hidden="true" style="margin-right:5px;"></i> Sales</a>
             <div class="sales-dropdown-content">
                 <a href="{% url 'sales_list' %}">All Sales</a>
                 <a href="{% url 'paygo_sales' %}">PayGo Sales(Metered)</a>
                 <a href="{% url 'paygo_sales_non_metered' %}">PayGo Sales(Non-Metered)</a>
             </div>
         </div>
-        <a href="{% url 'transactions_page' %}">Transactions 💱</a>
-        <a href="https://powerpayafrica.com/new-ticket/" target="_blank" rel="noopener noreferrer">Support 📞</a>
+        <a href="{% url 'transactions_page' %}"><i class="fa fa-exchange" aria-hidden="true" style="margin-right:5px;"></i> Transactions</a>
+        <a href="https://powerpayafrica.com/new-ticket/" target="_blank" rel="noopener noreferrer"><i class="fa fa-ticket" aria-hidden="true" style="margin-right:5px;"></i> Support</a>
         {% if user.is_authenticated %}
-            <a href="{% url 'logout' %}">Logout 📤</a>
+            <a href="{% url 'logout' %}"><i class="fa fa-sign-out" aria-hidden="true" style="margin-right:5px;"></i> Logout</a>
         {% else %}
-            <a href="{% url 'login' %}">Login 📥</a>
+            <a href="{% url 'login' %}"><i class="fa fa-sign-in" aria-hidden="true" style="margin-right:5px;"></i> Login</a>
         {% endif %}
         {% if user.first_name != 'John'%}
-            <a href="{% url 'export_meter_data' %}">Migaa Meter Data</a>
+            <a href="{% url 'export_meter_data' %}"><i class="fa fa-download" aria-hidden="true" style="margin-right:5px;"></i> Migaa Meter Data </a>
+            <a href="{% url 'export_ml_data' %}"><i class="fa fa-download" aria-hidden="true" style="margin-right:5px;"></i> ML Dataset Downloads</a>
         {% endif %}
-        <h5 class="sticky"> © 2023 Powerpay Africa. All Rights Reserved </h5>
+        <h5 class="sticky"><i class="fa fa-copyright" aria-hidden="true" style="margin-right:5px;"></i> 2023 Powerpay Africa. All Rights Reserved </h5>
     </div>
     <main class="justbody">
         {% block content %}

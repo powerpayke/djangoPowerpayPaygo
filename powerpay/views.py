@@ -880,3 +880,33 @@ def export_meter_data(request):
     df.to_csv(response, index=False)
 
     return response
+
+def export_ml_dataset(request):
+    dataset = fetch_data('getMeasurements')
+    context = {
+        'dataset': dataset
+    }
+    return render(request, 'ai_data_download.html', context)
+
+def export_ml(request, set):
+    data = fetch_measurement_data('getMeasurementData', set)
+
+    # Convert the data to a DataFrame
+    df = pd.DataFrame(data)
+    # Create a HttpResponse with content_type as ms-excel
+    response = HttpResponse(content_type='application/vnd.ms-excel')
+    fileName = f"{set}.csv"
+    
+    # Specify the file name using f-string
+    response['Content-Disposition'] = f'attachment; filename="{fileName}"'
+
+    # Use pandas to save the dataframe as an excel file in the response
+    df.to_csv(response, index=False)
+
+    return response
+
+def fetch_measurement_data(endpoint, q):
+    response = requests.get(BASE_URL + endpoint+"?q="+q, auth=AUTH)
+    response.raise_for_status()
+    return response.json()
+

@@ -38,6 +38,8 @@ urlpatterns = [
     path('devices/', views.devices_page, name='devices_page'),
     path('device/<str:device_id>/', views.device_data_page, name='device_data_page'),
     path('export/device_data/<str:device_id>/', views.export_device_data, name='export_device_data'),
+    path('export/ml-data/', views.export_ml_dataset, name='export_ml_data'),
+    path('export/<str:set>/', views.export_ml, name='export_ml'),
     path('accounts/', include('django.contrib.auth.urls')),
     path('login/', views.login_page, name='login'),
     path('logout/', views.logout_page, name='logout'),
