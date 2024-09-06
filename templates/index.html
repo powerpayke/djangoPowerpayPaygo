@@ -42,10 +42,10 @@
     {% endif %}
 
     <div class="tabs">
-        <button class="tablinks" onclick="openTab(event, 'energy-summary')" id="defaultOpen">Energy Summary ⚡</button>
-        <button class="tablinks" onclick="openTab(event, 'cooking-summary')">Cooking Summary 🍳</button>
-        <button class="tablinks" onclick="openTab(event, 'emissions-summary')">Emissions Summary 🏭</button>
-        <button class="tablinks" onclick="openTab(event, 'customer-summary')">Customer Summary 👥</button>
+        <button class="tablinks" onclick="openTab(event, 'energy-summary')" id="defaultOpen">Energy Summary <i class="fa fa-bolt" aria-hidden="true" style="margin-left:5px;"></i></button>
+        <button class="tablinks" onclick="openTab(event, 'cooking-summary')">Cooking Summary <i class="fa fa-cutlery" aria-hidden="true" style="margin-left:5px;"></i></button>
+        <button class="tablinks" onclick="openTab(event, 'emissions-summary')">Emissions Summary <i class="fa fa-industry" aria-hidden="true" style="margin-left:5px;"></i></button>
+        <button class="tablinks" onclick="openTab(event, 'customer-summary')">Customer Summary <i class="fa fa-users" aria-hidden="true" style="margin-left:5px;"></i></button>
     </div>
 
     <div id="energy-summary" class="tabcontent">
@@ -71,8 +71,8 @@
             </select>
             </div>
         <div class="data-labels">
-            <label class="labelArea">⚡ <br>Total Energy:<br>{{ sumKwh|floatformat:2 }} kWh</label>
-            <label class="labelArea">🤑 <br>Total Energy Cost:<br>KSHS. {{ sumEnergyCost|floatformat:1 }}</label>
+            <label class="labelArea"><i class="fa fa-bolt" aria-hidden="true" style="margin-right:5px;"></i><br>Total Energy:<br>{{ sumKwh|floatformat:2 }} kWh</label>
+            <label class="labelArea"><i class="fa fa-usd" aria-hidden="true" style="margin-left:5px;"></i><br>Total Energy Cost:<br>KSHS. {{ sumEnergyCost|floatformat:1 }}</label>
         </div>
         <div class="pie">
             <div class="meals-pie">{{ pie_chart|safe }}</div>
@@ -107,7 +107,7 @@
             </div>
         <div class="data-labels">
             <label class="labelArea">🍳 <br>Total Cooking Time:<br>{{ sumRuntime|floatformat:1 }} hours</label>
-            <label class="labelArea">🍽️ <br>Total Meals:<br>{{ sumMeals }} Meals</label>
+            <label class="labelArea"><i class="fa fa-cutlery" aria-hidden="true" style="margin-right:5px;"></i> <br>Total Meals:<br>{{ sumMeals }} Meals</label>
         </div>
         <div class="pie">
             <div class="meals-pie">{{ meals_pie_html|safe }}</div>
@@ -115,8 +115,6 @@
         </div>
         <div class="charts">
             <div class="line-chart">{{ cooking_line_chart|safe }}</div>
-        </div>
-        <div> <p>{{linked_data}}</p>
         </div>
     </div>
 
@@ -143,7 +141,7 @@
             </select>
             </div>
         <div class="data-labels">
-            <label class="labelArea">🏭 <br>Total Emissions:<br>{{ sumEmissions|floatformat:2 }} kg CO2</label>
+            <label class="labelArea"><i class="fa fa-industry" aria-hidden="true" style="margin-right:5px;"></i><br>Total Emissions:<br>{{ sumEmissions|floatformat:2 }} kg CO2</label>
         </div>
         <div class="pie">
             <div class="meals-pie">{{ pie_chart_emissions |safe }}</div>
