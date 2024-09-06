@@ -164,7 +164,7 @@ def plot_meal_classifications(data):
     #))
     
     fig_household_type.update_traces(
-        hole=.5
+        hole=.5, hovertemplate='<b>Household Type: %{label}<br>Meals: %{value} meals'
     )
     
     graphs_html['household_type'] = pio.to_html(fig_household_type, full_html=False)
@@ -178,7 +178,7 @@ def plot_meal_classifications(data):
       #  y=household_size_data['meals_cooked'],
        # name='Household Size'
     #))
-    fig_household_size.update_traces(hole=.5)
+    fig_household_size.update_traces(hole=.5, hovertemplate='<b>Household Size: %{label}<br>Meals: %{value} meals')
     
     graphs_html['household_size'] = pio.to_html(fig_household_size, full_html=False)
 
@@ -191,7 +191,7 @@ def plot_meal_classifications(data):
       #  y=country_data['meals_cooked'],
        # name='Country'
     #))
-    fig_country.update_traces(hole=.5)
+    fig_country.update_traces(hole=.5, hovertemplate='<b>Country: %{label}<br>Meals: %{value} meals')
     
     graphs_html['country'] = pio.to_html(fig_country, full_html=False)
 
@@ -204,7 +204,7 @@ def plot_meal_classifications(data):
       #  y=location_data['meals_cooked'],
        # name='Location'
     #))
-    fig_location.update_traces(hole=.5)
+    fig_location.update_traces(hole=.5, hovertemplate='<b>Location: %{label}<br>Meals: %{value} meals')
     
     graphs_html['location'] = pio.to_html(fig_location, full_html=False)
 
@@ -217,7 +217,7 @@ def plot_meal_classifications(data):
       #  y=sales_rep_data['meals_cooked'],
        # name='Sales Rep'
     #))
-    fig_sales_rep.update_traces(hole=.5)
+    fig_sales_rep.update_traces(hole=.5, hovertemplate='<b>Sales Rep: %{label}<br>Meals: %{value} meals')
     
     graphs_html['sales_rep'] = pio.to_html(fig_sales_rep, full_html=False)
 
@@ -230,7 +230,7 @@ def plot_meal_classifications(data):
       #  y=gender_data['meals_cooked'],
        # name='Gender'
     #))
-    fig_gender.update_traces(hole=.5)
+    fig_gender.update_traces(hole=.5, hovertemplate='<b>Gender: %{label}<br>Meals: %{value} meals')
     
     graphs_html['gender'] = pio.to_html(fig_gender, full_html=False)
 
