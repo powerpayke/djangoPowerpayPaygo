@@ -78,6 +78,8 @@
             <div class="meals-pie">{{ pie_chart|safe }}</div>
             <div class="pie-chart">{{ meals_kwh_html |safe }}</div>
         </div>
+        <div> <p> {{runtime}}</p>
+        </div>
         <div class="charts">
             <div class="line-chart">{{ scatter_chart|safe }}</div>
         </div> 
@@ -171,7 +173,13 @@
                     <option value="1576800" {% if selected_range == '1576800' %}selected{% endif %}>3 years</option>
                 </select>
                 </div>
-            <div>
+            <!-- Add two sub-tabs under the customer summary -->
+    <div class="sub-tabs">
+        <button class="sub-tablinks" onclick="openSubTab(event, 'cooking-info')" id="defaultSubOpen">Advanced Cooking Stats</button>
+        <button class="sub-tablinks" onclick="openSubTab(event, 'energy-info')">Advanced Energy Stats</button>
+    </div>
+
+    <div id="cooking-info" class="sub-tabcontent">
             <div class="pie" style="padding:10px; overflow:hidden;">
                 <div class="meals-pie">{{ countries_graph|safe}}</div>
                 <div class="pie-chart">{{ location_graph|safe}}</div>
@@ -184,7 +192,86 @@
                 <div class="meals-pie">{{ genders_graph|safe}}</div>
                 <div class="pie-chart">{{ sales_reps_graph|safe}}</div>
             </div>
+    </div>
+
+    <div id="energy-info" class="sub-tabcontent">
+        <div class="pie" style="padding:10px; overflow:hidden;">
+            <div class="meals-pie">{{ countries_graph_kwh|safe}}</div>
+            <div class="pie-chart">{{ location_graph_kwh|safe}}</div>
         </div>
+        <div class="pie" style="padding:10px; overflow:hidden;">
+            <div class="meals-pie">{{ household_size_graph_kwh|safe}}</div>
+            <div class="pie-chart">{{ household_type_graph_kwh|safe}}</div>
+        </div>
+        <div class="pie" style="padding:10px; overflow:hidden;">
+            <div class="meals-pie">{{ genders_graph_kwh|safe}}</div>
+            <div class="pie-chart">{{ sales_reps_graph_kwh|safe}}</div>
+        </div>
+</div>
+
+<script>
+    // Open first sub-tab on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById("defaultSubOpen").click();
+    });
+
+    function openSubTab(evt, subTabName) {
+        var i, subTabcontent, subTablinks;
+        
+        // Hide all sub-tab content
+        subTabcontent = document.getElementsByClassName("sub-tabcontent");
+        for (i = 0; i < subTabcontent.length; i++) {
+            subTabcontent[i].style.display = "none";
+        }
+        
+        // Remove active class from all sub-tab links
+        subTablinks = document.getElementsByClassName("sub-tablinks");
+        for (i = 0; i < subTablinks.length; i++) {
+            subTablinks[i].className = subTablinks[i].className.replace(" active", "");
+        }
+        
+        // Show the current sub-tab and add an active class to the link
+        document.getElementById(subTabName).style.display = "block";
+        evt.currentTarget.className += " active";
+    }
+</script>
+
+<style>
+    /* Style for the sub-tabs */
+    .sub-tabs {
+        margin-top: 20px;
+        text-align: center;
+        
+    }
+    
+    .sub-tablinks {
+        background-color: #0ead00;
+        border: none;
+        outline: none;
+        padding: 10px;
+        cursor: pointer;
+        font-size: 16px;
+        color: #fff;
+        margin: 10px;
+    }
+    
+    .sub-tablinks.active {
+        background-color: #e68a00;
+        color: #fff;
+    }
+    
+    .sub-tabcontent {
+        display: none;
+        padding: 20px;
+        border: none;
+        margin-top: 10px;
+    }
+    
+    .sub-tabcontent h2 {
+        text-align: center;
+    }
+</style>
+            
         </div>
         
 
