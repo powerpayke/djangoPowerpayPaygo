@@ -78,7 +78,6 @@ def homepage(request):
         data_list = df.to_dict(orient='records')
         meals, mls = classify_and_count_meals(data_list)
         morning, afternoon, night = categorize_kwh(data_list)
-        #scatterCharts = plotAllDevData(df)
         return runtime, data_list, meals, morning, afternoon, night
     
     processed_data = fetch_and_process_data(range)
@@ -97,29 +96,15 @@ def homepage(request):
     sumMeals = sum(meal_counts)
 
     charts = generate_charts(data_list, runtime, meals, morning, afternoon, night)
-    linked_data = linkAllData(meals)
-    linked_data = pd.DataFrame(linked_data)
-    locations, countries, genders, household_size, household_type, sales_reps = plot_meal_classifications(linked_data)
-    # Create a dictionary to store the cumulative kwh for each device
-    device_kwh_totals = {}
-
-    for record in data_list:
-        device_id = record['deviceID']
-        kwh = record['kwh']
     
-    # If deviceID already exists, add to the total kwh; otherwise, create new entry
-        if device_id in device_kwh_totals:
-            device_kwh_totals[device_id] += kwh
-        else:
-            device_kwh_totals[device_id] = kwh
+    # Step 1: Link meal data and kWh data with sales and customer data
+    linked_data = linkAllDataAndKwh(meals, data_list)
+    linked_data = pd.DataFrame(linked_data)
+    
+    # Generate meal and kWh classifications
+    locations, countries, genders, household_size, household_type, sales_reps, locations_kwh, countries_kwh, genders_kwh, household_size_kwh, household_type_kwh, sales_reps_kwh = plot_classifications(linked_data)
 
-# Convert the dictionary to the desired format
-    result = [{'deviceID': device_id, 'totalkwh': total_kwh} for device_id, total_kwh in device_kwh_totals.items()]
-    ans = linkKwhData(result)
-    ans = pd.DataFrame(ans)
-    locations_kwh, countries_kwh, genders_kwh, household_size_kwh, household_type_kwh, sales_reps_kwh = plot_kwh_classifications(ans)
-
-# Output result
+    # Output result
     context = {
         'line_chart': charts['line_chart'],
         'pie_chart': charts['pie_chart'],
@@ -148,53 +133,40 @@ def homepage(request):
         'household_size_graph_kwh': household_size_kwh,
         'household_type_graph_kwh': household_type_kwh,
         'sales_reps_graph_kwh': sales_reps_kwh
-        #'scatter_chart': scatterCharts
     }
 
     return render(request, 'index.html', context)
 
-def linkAllData(devData):
+
+def linkAllDataAndKwh(devData, kwhData):
     customer_data = Customer.objects.all().values()
     sales_data = Sale.objects.all().values()
-    cooking_data = devData
-    # Step 1: Link cooking data with sales data using the product_serial_number
-    linked_data = []
-    for sale in sales_data:
-        serial_number = sale['product_serial_number']
-        if serial_number in cooking_data:
-            sale['meals_cooked'] = cooking_data[serial_number]['count']
-            sale['last_txtime'] = cooking_data[serial_number]['last_txtime']
-        else:
-            sale['meals_cooked'] = 0
-            sale['last_txtime'] = None
-
-        # Step 2: Link sales data with customer data using customer_id
-        for customer in customer_data:
-            if customer['id'] == sale['customer_id']:
-                linked_entry = {**sale, **customer}  # Merge the dictionaries
-                linked_data.append(linked_entry)
-    return linked_data
-
-def linkKwhData(devData):
-    customer_data = Customer.objects.all().values()
-    sales_data = Sale.objects.all().values()
-    cooking_data = devData
     linked_data = []
 
-    # Step 1: Link cooking data with sales data using the product_serial_number
+    # Step 1: Link meals data with sales data
     for sale in sales_data:
         serial_number = sale['product_serial_number']
+        meals_cooked = 0
+        last_txtime = None
         matched_kwh = 0
-        
-        # Find the matching deviceID in the cooking data
-        for device in cooking_data:
-            if device['deviceID'] == serial_number:
-                matched_kwh = device['totalkwh']
+
+        # Find the matching deviceID in the meals and kWh data
+        for device in devData:
+            if device == serial_number:
+                meals_cooked = devData[device]['count']
+                last_txtime = devData[device]['last_txtime']
                 break
         
-        sale['kwh'] = matched_kwh  # Add the kwh value to the sale data
+        for device in kwhData:
+            if device['deviceID'] == serial_number:
+                matched_kwh = device['kwh']
+                break
 
-        # Step 2: Link sales data with customer data using customer_id
+        sale['meals_cooked'] = meals_cooked
+        sale['last_txtime'] = last_txtime
+        sale['kwh'] = matched_kwh
+
+        # Step 2: Link sales data with customer data
         for customer in customer_data:
             if customer['id'] == sale['customer_id']:
                 linked_entry = {**sale, **customer}  # Merge the dictionaries
@@ -203,179 +175,36 @@ def linkKwhData(devData):
     return linked_data
 
 
-def plot_meal_classifications(data):
+def plot_classifications(data):
     # Create a dictionary to store the HTML of each graph
     graphs_html = {}
 
-    # Classification by household type
-    fig_household_type = go.Figure()
-    household_type_data = data.groupby('household_type')['meals_cooked'].sum().reset_index()
-    fig_household_type = create_pie_chart(household_type_data['household_type'], household_type_data['meals_cooked'], 'Meals Cooked by Household Type')
-    #fig_household_type.add_trace(go.Bar(
-     #   x=household_type_data['household_type'],
-      #  y=household_type_data['meals_cooked'],
-       # name='Household Type'
-    #))
-    
-    fig_household_type.update_traces(
-        hole=.5, hovertemplate='<b>Household Type: %{label}<br>Meals: %{value} meals'
-    )
-    
-    graphs_html['household_type'] = pio.to_html(fig_household_type, full_html=False)
+    # Shared function for creating pie charts for both meals and kWh
+    def create_pie_chart_for_classification(classification_column, value_column, label):
+        fig = go.Figure()
+        classification_data = data.groupby(classification_column)[value_column].sum().reset_index()
+        fig = create_pie_chart(classification_data[classification_column], classification_data[value_column], label)
+        fig.update_traces(hole=.5, hovertemplate=f'<b>{classification_column.capitalize()}: %{{label}}<br>{value_column.capitalize()}: %{{value}} {value_column}')
+        return pio.to_html(fig, full_html=False)
 
-    # Classification by household size
-    fig_household_size = go.Figure()
-    household_size_data = data.groupby('household_size')['meals_cooked'].sum().reset_index()
-    fig_household_size = create_pie_chart(household_size_data['household_size'], household_size_data['meals_cooked'], 'Meals Cooked by Household Size')
-    #fig_household_size.add_trace(go.Bar(
-     #   x=household_size_data['household_size'],
-      #  y=household_size_data['meals_cooked'],
-       # name='Household Size'
-    #))
-    fig_household_size.update_traces(hole=.5, hovertemplate='<b>Household Size: %{label}<br>Meals: %{value} meals')
-    
-    graphs_html['household_size'] = pio.to_html(fig_household_size, full_html=False)
+    # Meals classification
+    graphs_html['meals_by_household_type'] = create_pie_chart_for_classification('household_type', 'meals_cooked', 'Meals Cooked by Household Type')
+    graphs_html['meals_by_household_size'] = create_pie_chart_for_classification('household_size', 'meals_cooked', 'Meals Cooked by Household Size')
+    graphs_html['meals_by_country'] = create_pie_chart_for_classification('country', 'meals_cooked', 'Meals Cooked by Country')
+    graphs_html['meals_by_location'] = create_pie_chart_for_classification('location', 'meals_cooked', 'Meals Cooked by Location')
+    graphs_html['meals_by_sales_rep'] = create_pie_chart_for_classification('sales_rep', 'meals_cooked', 'Meals Cooked by Sales Rep')
+    graphs_html['meals_by_gender'] = create_pie_chart_for_classification('gender', 'meals_cooked', 'Meals Cooked by Gender')
 
-    # Classification by country
-    fig_country = go.Figure()
-    country_data = data.groupby('country')['meals_cooked'].sum().reset_index()
-    fig_country = create_pie_chart(country_data['country'], country_data['meals_cooked'], 'Meals Cooked by Country')
-    #fig_country.add_trace(go.Bar(
-     #   x=country_data['country'],
-      #  y=country_data['meals_cooked'],
-       # name='Country'
-    #))
-    fig_country.update_traces(hole=.5, hovertemplate='<b>Country: %{label}<br>Meals: %{value} meals')
-    
-    graphs_html['country'] = pio.to_html(fig_country, full_html=False)
+    # kWh classification
+    graphs_html['kwh_by_household_type'] = create_pie_chart_for_classification('household_type', 'kwh', 'Energy Use by Household Type')
+    graphs_html['kwh_by_household_size'] = create_pie_chart_for_classification('household_size', 'kwh', 'Energy Use by Household Size')
+    graphs_html['kwh_by_country'] = create_pie_chart_for_classification('country', 'kwh', 'Energy Use by Country')
+    graphs_html['kwh_by_location'] = create_pie_chart_for_classification('location', 'kwh', 'Energy Use by Location')
+    graphs_html['kwh_by_sales_rep'] = create_pie_chart_for_classification('sales_rep', 'kwh', 'Energy Use by Sales Rep')
+    graphs_html['kwh_by_gender'] = create_pie_chart_for_classification('gender', 'kwh', 'Energy Use by Gender')
 
-    # Classification by location
-    fig_location = go.Figure()
-    location_data = data.groupby('location')['meals_cooked'].sum().reset_index()
-    fig_location = create_pie_chart(location_data['location'], location_data['meals_cooked'], 'Meals Cooked by Location')
-    #fig_location.add_trace(go.Bar(
-     #   x=location_data['location'],
-      #  y=location_data['meals_cooked'],
-       # name='Location'
-    #))
-    fig_location.update_traces(hole=.5, hovertemplate='<b>Location: %{label}<br>Meals: %{value} meals')
-    
-    graphs_html['location'] = pio.to_html(fig_location, full_html=False)
-
-    # Classification by sales rep
-    fig_sales_rep = go.Figure()
-    sales_rep_data = data.groupby('sales_rep')['meals_cooked'].sum().reset_index()
-    fig_sales_rep = create_pie_chart(sales_rep_data['sales_rep'], sales_rep_data['meals_cooked'], 'Meals Cooked by Sales Rep')
-    #fig_sales_rep.add_trace(go.Bar(
-     #   x=sales_rep_data['sales_rep'],
-      #  y=sales_rep_data['meals_cooked'],
-       # name='Sales Rep'
-    #))
-    fig_sales_rep.update_traces(hole=.5, hovertemplate='<b>Sales Rep: %{label}<br>Meals: %{value} meals')
-    
-    graphs_html['sales_rep'] = pio.to_html(fig_sales_rep, full_html=False)
-
-    # Classification by gender
-    fig_gender = go.Figure()
-    gender_data = data.groupby('gender')['meals_cooked'].sum().reset_index()
-    fig_gender = create_pie_chart(gender_data['gender'], gender_data['meals_cooked'], 'Meals Cooked By Gender')
-    #fig_gender.add_trace(go.Bar(
-     #   x=gender_data['gender'],
-      #  y=gender_data['meals_cooked'],
-       # name='Gender'
-    #))
-    fig_gender.update_traces(hole=.5, hovertemplate='<b>Gender: %{label}<br>Meals: %{value} meals')
-    
-    graphs_html['gender'] = pio.to_html(fig_gender, full_html=False)
-
-    return graphs_html['location'], graphs_html['country'], graphs_html['gender'], graphs_html['household_size'], graphs_html['household_type'], graphs_html['sales_rep']
-
-def plot_kwh_classifications(data):
-    # Create a dictionary to store the HTML of each graph
-    graphs_html = {}
-
-    # Classification by household type
-    fig_household_type = go.Figure()
-    household_type_data = data.groupby('household_type')['kwh'].sum().reset_index()
-    fig_household_type = create_pie_chart(household_type_data['household_type'], household_type_data['kwh'], 'Energy Use by Household Type')
-    #fig_household_type.add_trace(go.Bar(
-     #   x=household_type_data['household_type'],
-      #  y=household_type_data['meals_cooked'],
-       # name='Household Type'
-    #))
-    
-    fig_household_type.update_traces(
-        hole=.5, hovertemplate='<b>Household Type: %{label}<br>Energy: %{value} kwh'
-    )
-    
-    graphs_html['household_type'] = pio.to_html(fig_household_type, full_html=False)
-
-    # Classification by household size
-    fig_household_size = go.Figure()
-    household_size_data = data.groupby('household_size')['kwh'].sum().reset_index()
-    fig_household_size = create_pie_chart(household_size_data['household_size'], household_size_data['kwh'], 'Energy Use by Household Size')
-    #fig_household_size.add_trace(go.Bar(
-     #   x=household_size_data['household_size'],
-      #  y=household_size_data['meals_cooked'],
-       # name='Household Size'
-    #))
-    fig_household_size.update_traces(hole=.5, hovertemplate='<b>Household Size: %{label}<br>Energy: %{value} kwh')
-    
-    graphs_html['household_size'] = pio.to_html(fig_household_size, full_html=False)
-
-    # Classification by country
-    fig_country = go.Figure()
-    country_data = data.groupby('country')['kwh'].sum().reset_index()
-    fig_country = create_pie_chart(country_data['country'], country_data['kwh'], 'Energy Use by Country')
-    #fig_country.add_trace(go.Bar(
-     #   x=country_data['country'],
-      #  y=country_data['meals_cooked'],
-       # name='Country'
-    #))
-    fig_country.update_traces(hole=.5, hovertemplate='<b>Country: %{label}<br>Energy: %{value} kwh')
-    
-    graphs_html['country'] = pio.to_html(fig_country, full_html=False)
-
-    # Classification by location
-    fig_location = go.Figure()
-    location_data = data.groupby('location')['kwh'].sum().reset_index()
-    fig_location = create_pie_chart(location_data['location'], location_data['kwh'], 'Energy Use by Location')
-    #fig_location.add_trace(go.Bar(
-     #   x=location_data['location'],
-      #  y=location_data['meals_cooked'],
-       # name='Location'
-    #))
-    fig_location.update_traces(hole=.5, hovertemplate='<b>Location: %{label}<br>Energy: %{value} kwh')
-    
-    graphs_html['location'] = pio.to_html(fig_location, full_html=False)
-
-    # Classification by sales rep
-    fig_sales_rep = go.Figure()
-    sales_rep_data = data.groupby('sales_rep')['kwh'].sum().reset_index()
-    fig_sales_rep = create_pie_chart(sales_rep_data['sales_rep'], sales_rep_data['kwh'], 'Energy Use by Sales Rep')
-    #fig_sales_rep.add_trace(go.Bar(
-     #   x=sales_rep_data['sales_rep'],
-      #  y=sales_rep_data['meals_cooked'],
-       # name='Sales Rep'
-    #))
-    fig_sales_rep.update_traces(hole=.5, hovertemplate='<b>Sales Rep: %{label}<br>Energy: %{value} kwh')
-    
-    graphs_html['sales_rep'] = pio.to_html(fig_sales_rep, full_html=False)
-
-    # Classification by gender
-    fig_gender = go.Figure()
-    gender_data = data.groupby('gender')['kwh'].sum().reset_index()
-    fig_gender = create_pie_chart(gender_data['gender'], gender_data['kwh'], 'Energy Use By Gender')
-    #fig_gender.add_trace(go.Bar(
-     #   x=gender_data['gender'],
-      #  y=gender_data['meals_cooked'],
-       # name='Gender'
-    #))
-    fig_gender.update_traces(hole=.5, hovertemplate='<b>Gender: %{label}<br>Energy: %{value} kwh')
-    
-    graphs_html['gender'] = pio.to_html(fig_gender, full_html=False)
-
-    return graphs_html['location'], graphs_html['country'], graphs_html['gender'], graphs_html['household_size'], graphs_html['household_type'], graphs_html['sales_rep']
+    return graphs_html['meals_by_location'], graphs_html['meals_by_country'], graphs_html['meals_by_gender'], graphs_html['meals_by_household_size'], graphs_html['meals_by_household_type'], graphs_html['meals_by_sales_rep'], \
+           graphs_html['kwh_by_location'], graphs_html['kwh_by_country'], graphs_html['kwh_by_gender'], graphs_html['kwh_by_household_size'], graphs_html['kwh_by_household_type'], graphs_html['kwh_by_sales_rep']
 
 
 def plotAllDevData(data):
