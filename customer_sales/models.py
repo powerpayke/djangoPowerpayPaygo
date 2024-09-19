@@ -1,25 +1,6 @@
 from django.db import models
 
 
-# Custom Managers
-class CustomerManager(models.Manager):
-    def for_user(self, user):
-        """
-        Return the appropriate queryset based on the user.
-        """
-        if user.first_name == 'Jeff':
-            return self.model._meta.model_class().objects.using('customer_sales_testcustomer')
-        return self.model._meta.model_class().objects.using('default')
-
-class SaleManager(models.Manager):
-    def for_user(self, user):
-        """
-        Return the appropriate queryset based on the user.
-        """
-        if user.first_name == 'Jeff':
-            return self.model._meta.model_class().objects.using('customer_sales_testsale')
-        return self.model._meta.model_class().objects.using('default')
-
 class Customer(models.Model):
     GENDER_CHOICES = [
         ('M', 'Male'),
