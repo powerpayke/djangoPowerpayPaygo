@@ -38,9 +38,6 @@ class Customer(models.Model):
     county = models.CharField(max_length=100, null=True, blank=True)
     sub_county = models.CharField(max_length=100, null=True, blank=True)
 
-    objects = models.Manager()  # Default manager
-    custom_manager = CustomerManager()  # Custom manager
-
     def __str__(self):
         return self.name
 
@@ -82,9 +79,6 @@ class Sale(models.Model):
     type_of_use = models.CharField(max_length=10, choices=TYPE_OF_USE_CHOICES, default='Domestic')
     specific_economic_activity = models.CharField(max_length=255, null=True, blank=True)
     location_of_use = models.CharField(max_length=255, null=True, blank=True)
-
-    objects = models.Manager()  # Default manager
-    custom_manager = SaleManager()  # Custom manager
 
     def __str__(self):
         return f"{self.product_name} ({self.product_model})"
@@ -131,9 +125,6 @@ class TestCustomer(models.Model):
     county = models.CharField(max_length=100, null=True, blank=True)
     sub_county = models.CharField(max_length=100, null=True, blank=True)
 
-    objects = models.Manager()  # Default manager
-    custom_manager = CustomerManager()  # Custom manager
-
     def __str__(self):
         return self.name
 
@@ -174,9 +165,6 @@ class TestSale(models.Model):
     type_of_use = models.CharField(max_length=10, choices=TYPE_OF_USE_CHOICES, default='Domestic')
     specific_economic_activity = models.CharField(max_length=255, null=True, blank=True)
     location_of_use = models.CharField(max_length=255, null=True, blank=True)
-
-    objects = models.Manager()  # Default manager
-    custom_manager = SaleManager()  # Custom manager
 
     def __str__(self):
         return f"{self.product_name} ({self.product_model})"
