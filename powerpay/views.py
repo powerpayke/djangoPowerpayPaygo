@@ -14,7 +14,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.http import HttpResponse
-from customer_sales.models import Customer, Sale
+from customer_sales.models import Customer, Sale, TestCustomer, TestSale
 
 # Constants
 BASE_URL = "https://appliapay.com/"
@@ -65,6 +65,8 @@ def homepage(request):
     def fetch_and_process_data(range):
         if usr == 'John-Maina':
             data = fetch_data_index("allDeviceDataScodeDjango", range)
+        elif usr == 'Welight':
+            data = fetch_data_index("allDeviceDataWelightDjango", range)
         else:
             data = fetch_data_index("allDeviceDataDjango", range)
 
@@ -139,8 +141,12 @@ def homepage(request):
 
 
 def linkAllDataAndKwh(devData, kwhData):
-    customer_data = Customer.objects.all().values()
-    sales_data = Sale.objects.all().values()
+    user = request.user
+    # Choose the model based on user
+    CustomerModel = TestCustomer if user.first_name == 'Welight' else Customer
+    customer_data = CustomerModel.objects.all().values()
+    SaleModel = TestSale if user.first_name == 'Welight' else Sale
+    sales_data = SaleModel.objects.all().values()
     linked_data = []
 
     # Step 1: Link meals data with sales data
@@ -249,6 +255,8 @@ def devices_page(request):
     usr = request.user.username
     if usr == 'John-Maina':
         data = fetch_data("commandScode")
+    elif usr == 'Welight':
+        data = fetch_data("commandWelight")
     else:
         data = fetch_data("command")
     data = pd.DataFrame(data)
@@ -698,6 +706,8 @@ def device_data_page(request, device_id):
     usr = request.user.username
     if usr == 'John-Maina':
         dat = fetch_data("commandScode")
+    elif usr == 'Welight':
+        dat = fetch_data("commandWelight")
     else:
         dat = fetch_data("command")
     for z in dat:

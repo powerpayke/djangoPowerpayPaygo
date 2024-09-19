@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.core.paginator import Paginator
-from .models import Customer, Sale
+from .models import Customer, Sale, TestCustomer, TestSale
 from .forms import CustomerForm, SaleForm
 from datetime import timedelta
 import requests
@@ -15,25 +15,38 @@ AUTH = HTTPBasicAuth('admin', '123Give!@#')
 
 
 # Existing customer views...
-
 def customers_list(request):
     query = request.GET.get('q')
+    user = request.user
+    # Choose the model based on user
+    CustomerModel = TestCustomer if user.first_name == 'Welight' else Customer
+    # Query the appropriate model
     if query:
-        customers = Customer.objects.filter(name__icontains=query)
+        customers = CustomerModel.objects.filter(name__icontains=query)
     else:
-        customers = Customer.objects.all()
+        customers = CustomerModel.objects.all()
+
+    # Pagination
     paginator = Paginator(customers, 10)
     page = request.GET.get('page')
     customers = paginator.get_page(page)
+    
     return render(request, 'customer_sales/customers_list.html', {'customers': customers, 'query': query})
 
+
 def customer_detail(request, pk):
-    customer = get_object_or_404(Customer, pk=pk)
+    user = request.user
+    # Choose the model based on user
+    CustomerModel = TestCustomer if user.first_name == 'Welight' else Customer
+    customer = get_object_or_404(CustomerModel, pk=pk)
     registration_time = customer.date + timedelta(hours=3)
     return render(request, 'customer_sales/customer_detail.html', {'customer': customer, 'registration_time': registration_time})
     
 def customer_edit(request, pk):
-    customer = get_object_or_404(Customer, pk=pk)
+    user = request.user
+    # Choose the model based on user
+    CustomerModel = TestCustomer if user.first_name == 'Welight' else Customer
+    customer = get_object_or_404(CustomerModel, pk=pk)
     if request.method == 'POST':
         form = CustomerForm(request.POST, instance=customer)
         if form.is_valid():
@@ -44,7 +57,10 @@ def customer_edit(request, pk):
     return render(request, 'customer_sales/customer_edit.html', {'form': form})
 
 def customer_delete(request, pk):
-    customer = get_object_or_404(Customer, pk=pk)
+    user = request.user
+    # Choose the model based on user
+    CustomerModel = TestCustomer if user.first_name == 'Welight' else Customer
+    customer = get_object_or_404(CustomerModel, pk=pk)
     if request.method == 'POST':
         customer.delete()
         return redirect('customers_list')
@@ -62,8 +78,11 @@ def add_customer(request):
 
 def sale_add(request, customer_id=None):
     customer = None
+    user = request.user
+    # Choose the model based on user
+    CustomerModel = TestCustomer if user.first_name == 'Welight' else Customer
     if customer_id:
-        customer = get_object_or_404(Customer, pk=customer_id)
+        customer = get_object_or_404(CustomerModel, pk=customer_id)
 
     if request.method == 'POST':
         form = SaleForm(request.POST)
@@ -81,10 +100,13 @@ def sale_add(request, customer_id=None):
 
 def sales_list(request):
     query = request.GET.get('q')
+    user = request.user
+    # Choose the model based on user
+    SaleModel = TestSale if user.first_name == 'Welight' else Sale
     if query:
-        sales = Sale.objects.filter(product_name__icontains=query)
+        sales = SaleModel.objects.filter(product_name__icontains=query)
     else:
-        sales = Sale.objects.all()
+        sales = SaleModel.objects.all()
     
     paginator = Paginator(sales, 10)  # Show 10 sales per page
     page_number = request.GET.get('page')
@@ -93,11 +115,17 @@ def sales_list(request):
     return render(request, 'customer_sales/sales_list.html', {'sales': page_obj, 'query': query})
 
 def sale_detail(request, pk):
-    sale = get_object_or_404(Sale, pk=pk)
+    user = request.user
+    # Choose the model based on user
+    SaleModel = TestSale if user.first_name == 'Welight' else Sale
+    sale = get_object_or_404(SaleModel, pk=pk)
     return render(request, 'customer_sales/sale_detail.html', {'sale': sale})
 
 def sale_edit(request, pk):
-    sale = get_object_or_404(Sale, pk=pk)
+    user = request.user
+    # Choose the model based on user
+    SaleModel = TestSale if user.first_name == 'Welight' else Sale
+    sale = get_object_or_404(SaleModel, pk=pk)
     if request.method == 'POST':
         form = SaleForm(request.POST, instance=sale)
         if form.is_valid():
@@ -111,7 +139,10 @@ def sale_edit(request, pk):
     return render(request, 'customer_sales/sale_form.html', {'form': form})
 
 def sale_delete(request, pk):
-    sale = get_object_or_404(Sale, pk=pk)
+    user = request.user
+    # Choose the model based on user
+    SaleModel = TestSale if user.first_name == 'Welight' else Sale
+    sale = get_object_or_404(SaleModel, pk=pk)
     if request.method == 'POST':
         sale.delete()
         return redirect('sales_list')
@@ -229,7 +260,10 @@ def paygo_sales_non_metered(request):
 
 ###############################DOWNLOAD CUSTOMER DATA#######################################################
 def export_customer_data(request):
-    customers = Customer.objects.all().values()
+    user = request.user
+    # Choose the model based on user
+    CustomerModel = TestCustomer if user.first_name == 'Welight' else Customer
+    customers = CustomerModel.objects.all().values()
     df = pd.DataFrame(customers)
     # Convert any datetime columns to timezone-unaware
     for column in df.columns:
@@ -251,7 +285,10 @@ def export_customer_data(request):
 
 ###############################DOWNLOAD SALES DATA#######################################################
 def export_sales_data(request):
-    sales = Sale.objects.all().values()
+    user = request.user
+    # Choose the model based on user
+    SaleModel = TestSale if user.first_name == 'Welight' else Sale
+    sales = SaleModel.objects.all().values()
     df = pd.DataFrame(sales)
     # Convert any datetime columns to timezone-unaware
     for column in df.columns:

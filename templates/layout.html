@@ -103,18 +103,22 @@
             <a href="{% url 'sales_list' %}"><i class="fa fa-shopping-cart" aria-hidden="true" style="margin-right:5px;"></i> Sales</a>
             <div class="sales-dropdown-content">
                 <a href="{% url 'sales_list' %}">All Sales</a>
+                {% if user.first_name != 'Welight'%}
                 <a href="{% url 'paygo_sales' %}">PayGo Sales(Metered)</a>
                 <a href="{% url 'paygo_sales_non_metered' %}">PayGo Sales(Non-Metered)</a>
+                {% endif %}
             </div>
         </div>
+        {% if user.first_name != 'Welight'%}
         <a href="{% url 'transactions_page' %}"><i class="fa fa-exchange" aria-hidden="true" style="margin-right:5px;"></i> Transactions</a>
+        {% endif %}
         <a href="https://powerpayafrica.com/new-ticket/" target="_blank" rel="noopener noreferrer"><i class="fa fa-ticket" aria-hidden="true" style="margin-right:5px;"></i> Support</a>
         {% if user.is_authenticated %}
             <a href="{% url 'logout' %}"><i class="fa fa-sign-out" aria-hidden="true" style="margin-right:5px;"></i> Logout</a>
         {% else %}
             <a href="{% url 'login' %}"><i class="fa fa-sign-in" aria-hidden="true" style="margin-right:5px;"></i> Login</a>
         {% endif %}
-        {% if user.first_name != 'John'%}
+        {% if user.first_name != 'John' or user.first_name != 'Welight'%}
             <a href="{% url 'export_meter_data' %}"><i class="fa fa-download" aria-hidden="true" style="margin-right:5px;"></i> Migaa Meter Data </a>
             <a href="{% url 'export_ml_data' %}"><i class="fa fa-download" aria-hidden="true" style="margin-right:5px;"></i> ML Dataset Downloads</a>
         {% endif %}
