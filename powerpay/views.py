@@ -100,7 +100,7 @@ def homepage(request):
     charts = generate_charts(data_list, runtime, meals, morning, afternoon, night)
     
     # Step 1: Link meal data and kWh data with sales and customer data
-    linked_data = linkAllDataAndKwh(meals, data_list)
+    linked_data = linkAllDataAndKwh(request, meals, data_list)
     linked_data = pd.DataFrame(linked_data)
     
     # Generate meal and kWh classifications
@@ -140,7 +140,7 @@ def homepage(request):
     return render(request, 'index.html', context)
 
 
-def linkAllDataAndKwh(devData, kwhData):
+def linkAllDataAndKwh(request, devData, kwhData):
     user = request.user
     # Choose the model based on user
     CustomerModel = TestCustomer if user.first_name == 'Welight' else Customer
