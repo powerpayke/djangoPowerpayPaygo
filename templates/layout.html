@@ -118,7 +118,7 @@
         {% else %}
             <a href="{% url 'login' %}"><i class="fa fa-sign-in" aria-hidden="true" style="margin-right:5px;"></i> Login</a>
         {% endif %}
-        {% if user.first_name != 'John' or user.first_name != 'Welight'%}
+        {% if user.first_name == 'Sophia' or user.first_name == 'Jeff'%}
             <a href="{% url 'export_meter_data' %}"><i class="fa fa-download" aria-hidden="true" style="margin-right:5px;"></i> Migaa Meter Data </a>
             <a href="{% url 'export_ml_data' %}"><i class="fa fa-download" aria-hidden="true" style="margin-right:5px;"></i> ML Dataset Downloads</a>
         {% endif %}
