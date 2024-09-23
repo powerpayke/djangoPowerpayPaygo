@@ -59,7 +59,7 @@ def customer_detail(request, pk):
         'registration_time': registration_time
     })
 
-    
+
 def customer_edit(request, pk):
     user = request.user
 
@@ -182,8 +182,12 @@ def sale_edit(request, pk):
     # Choose the model based on user
     SaleModel = TestSale if user.first_name == 'Welight' else Sale
     sale = get_object_or_404(SaleModel, pk=pk)
+
+    # Choose the correct form based on user
+    SaleFormClass = TestSaleForm if user.first_name == 'Welight' else SaleForm
+
     if request.method == 'POST':
-        form = SaleForm(request.POST, instance=sale)
+        form = SaleFormClass(request.POST, instance=sale)
         if form.is_valid():
             form.save()
             if sale.customer:
@@ -191,7 +195,8 @@ def sale_edit(request, pk):
             else:
                 return redirect('sales_list')
     else:
-        form = SaleForm(instance=sale)
+        form = SaleFormClass(instance=sale)
+
     return render(request, 'customer_sales/sale_form.html', {'form': form})
 
 def sale_delete(request, pk):
