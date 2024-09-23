@@ -34,13 +34,31 @@ def customers_list(request):
     return render(request, 'customer_sales/customers_list.html', {'customers': customers, 'query': query})
 
 
-def customer_detail(request, pk):
+def customer_detail(request, pk): 
     user = request.user
-    # Choose the model based on user
+    
+    # Choose the correct customer model based on the user
     CustomerModel = TestCustomer if user.first_name == 'Welight' else Customer
+    
+    # Get the customer
     customer = get_object_or_404(CustomerModel, pk=pk)
+    
+    # Calculate the registration time
     registration_time = customer.date + timedelta(hours=3)
-    return render(request, 'customer_sales/customer_detail.html', {'customer': customer, 'registration_time': registration_time})
+    
+    # Choose the correct sales model based on the user
+    SaleModel = TestSale if user.first_name == 'Welight' else Sale
+    
+    # Pull the sales associated with this customer
+    sales = SaleModel.objects.filter(customer=customer)
+    
+    # Render the customer details and sales
+    return render(request, 'customer_sales/customer_detail.html', {
+        'customer': customer,
+        'sales': sales,
+        'registration_time': registration_time
+    })
+
     
 def customer_edit(request, pk):
     user = request.user

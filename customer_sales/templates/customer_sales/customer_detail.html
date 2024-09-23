@@ -43,7 +43,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for sale in customer.sales.all %}
+            {% for sale in sales %}
             <tr>
                 <td class="table_content">{{ sale.registration_date }}</td>
                 <td class="table_content">{{ sale.release_date }}</td>
