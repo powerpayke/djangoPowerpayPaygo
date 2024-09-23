@@ -77,15 +77,21 @@ def add_customer(request):
     return render(request, 'customer_sales/add_customer.html', {'form': form})
 
 def sale_add(request, customer_id=None):
-    customer = None
     user = request.user
-    # Choose the model based on user
-    CustomerModel = TestCustomer if user.first_name == 'Welight' else Customer
-    if customer_id:
-        customer = get_object_or_404(CustomerModel, pk=customer_id)
+
+    # Choose the correct model and form based on the user
+    if user.first_name == 'Welight':
+        CustomerModel = TestCustomer
+        SaleFormClass = TestSaleForm  # Use TestSaleForm for Welight users
+    else:
+        CustomerModel = Customer
+        SaleFormClass = SaleForm  # Use SaleForm for regular users
+
+    # Get the customer based on the user type
+    customer = get_object_or_404(CustomerModel, pk=customer_id) if customer_id else None
 
     if request.method == 'POST':
-        form = SaleForm(request.POST)
+        form = SaleFormClass(request.POST)
         if form.is_valid():
             sale = form.save(commit=False)
             if customer:
@@ -93,9 +99,9 @@ def sale_add(request, customer_id=None):
             sale.save()
             return redirect('customer_detail', pk=sale.customer.pk if sale.customer else 'sales_list')
     else:
-        form = SaleForm(current_customer_id=customer_id if customer_id else None)
-    return render(request, 'customer_sales/sale_add.html', {'form': form, 'customer': customer})
+        form = SaleFormClass(current_customer_id=customer_id if customer_id else None)
 
+    return render(request, 'customer_sales/sale_add.html', {'form': form, 'customer': customer})
 # New sales views...
 
 def sales_list(request):
