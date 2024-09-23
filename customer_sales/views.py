@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.core.paginator import Paginator
 from .models import Customer, Sale, TestCustomer, TestSale
-from .forms import CustomerForm, SaleForm
+from .forms import CustomerForm, SaleForm, TestCustomerForm, TestSaleForm
 from datetime import timedelta
 import requests
 from requests.auth import HTTPBasicAuth
@@ -44,17 +44,30 @@ def customer_detail(request, pk):
     
 def customer_edit(request, pk):
     user = request.user
-    # Choose the model based on user
-    CustomerModel = TestCustomer if user.first_name == 'Welight' else Customer
+
+    # Choose the model and form based on the user
+    if user.first_name == 'Welight':
+        CustomerModel = TestCustomer
+        CustomerFormClass = TestCustomerForm
+    else:
+        CustomerModel = Customer
+        CustomerFormClass = CustomerForm
+
+    # Retrieve the customer instance based on the selected model
     customer = get_object_or_404(CustomerModel, pk=pk)
+
     if request.method == 'POST':
-        form = CustomerForm(request.POST, instance=customer)
+        # Use the correct form for the POST request with the customer instance
+        form = CustomerFormClass(request.POST, instance=customer)
         if form.is_valid():
             form.save()
             return redirect('customer_detail', pk=customer.pk)
     else:
-        form = CustomerForm(instance=customer)
+        # Use the correct form for the GET request to prefill the customer data
+        form = CustomerFormClass(instance=customer)
+
     return render(request, 'customer_sales/customer_edit.html', {'form': form})
+
 
 def customer_delete(request, pk):
     user = request.user
@@ -67,14 +80,32 @@ def customer_delete(request, pk):
     return render(request, 'customer_sales/customer_delete.html', {'customer': customer})
 
 def add_customer(request):
+    user = request.user
+
+    # Check if it's a POST request
     if request.method == 'POST':
-        form = CustomerForm(request.POST)
+        # Use TestCustomerForm if the user is from Welight, otherwise use CustomerForm
+        if user.first_name == 'Welight':
+            form = TestCustomerForm(request.POST)
+        else:
+            form = CustomerForm(request.POST)
+
+        # Validate the form and save if valid
         if form.is_valid():
             form.save()
             return redirect('customers_list')
+    
+    # If it's not a POST request (i.e., it's a GET request), initialize the form
     else:
-        form = CustomerForm()
+        # Ensure you use the correct form based on the user's first name
+        if user.first_name == 'Welight':
+            form = TestCustomerForm()
+        else:
+            form = CustomerForm()
+
+    # Render the form in the template
     return render(request, 'customer_sales/add_customer.html', {'form': form})
+
 
 def sale_add(request, customer_id=None):
     user = request.user
@@ -102,6 +133,7 @@ def sale_add(request, customer_id=None):
         form = SaleFormClass(current_customer_id=customer_id if customer_id else None)
 
     return render(request, 'customer_sales/sale_add.html', {'form': form, 'customer': customer})
+
 # New sales views...
 
 def sales_list(request):
